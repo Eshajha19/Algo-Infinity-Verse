@@ -39,7 +39,6 @@
             <li><a href="#roadmap">Roadmap</a></li>
             <li><a href="#interview">Interview Prep</a></li>
             <li><a href="#dashboard">Dashboard</a></li>
-            <li><a href="#profile">Profile</a></li>
         </ul>
         <div class="nav-buttons">
             <button id="darkModeToggle" class="dark-mode-btn">
@@ -621,63 +620,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Profile Section -->
-    <section id="profile" class="section profile-section">
-        <div class="container">
-            <h2 class="section-title">
-                <span class="title-icon">👤</span>
-                Profile
-            </h2>
-            <div class="profile-container">
-                <!-- Profile Header -->
-                <div class="profile-header">
-                    <div class="profile-avatar">
-                        <span class="avatar-icon">🚀</span>
-                    </div>
-                    <div class="profile-info">
-                        <h3 id="profileSectionName">Learner</h3>
-                        <p class="profile-level" id="profileLevel">Level 1 - Beginner</p>
-                        <p class="profile-join">Joined: <span id="joinDate">Today</span></p>
-                    </div>
-                    <button class="profile-edit-btn" id="profileSectionEditBtn" title="Edit Profile">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                </div>
-                <!-- Profile Stats -->
-                <div class="profile-stats">
-                    <div class="profile-stat">
-                        <span class="profile-stat-value" id="profileTotalXP">0</span>
-                        <span class="profile-stat-label">Total XP</span>
-                    </div>
-                    <div class="profile-stat">
-                        <span class="profile-stat-value" id="profileProblems">0</span>
-                        <span class="profile-stat-label">Problems</span>
-                    </div>
-                    <div class="profile-stat">
-                        <span class="profile-stat-value" id="profileStreak">0</span>
-                        <span class="profile-stat-label">Day Streak</span>
-                    </div>
-                    <div class="profile-stat">
-                        <span class="profile-stat-value" id="profileBadges">0</span>
-                        <span class="profile-stat-label">Badges</span>
-                    </div>
-                </div>
-                <!-- Profile Progress -->
-                <div class="profile-progress">
-                    <div class="progress-bar-container">
-                        <div class="progress-label">
-                            <span>Level Progress</span>
-                            <span id="profileLevelProgress">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="profileProgressBar"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Footer -->
     <footer class="footer">

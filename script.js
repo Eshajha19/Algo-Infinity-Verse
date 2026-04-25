@@ -548,6 +548,7 @@ let userProgress = {
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded fired, initializing app...');
     loadUserData();
     initLoadingScreen();
     initNavbar();
@@ -565,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update profile display after loading
     updateProfile();
+    console.log('App initialization complete');
 
     // Language change handler for code editor
     const langSelect = document.getElementById('languageSelect');
@@ -737,38 +739,56 @@ let selectedAvatar = '🚀';
 const avatarOptions = ['🚀', '🌟', '🔥', '💎', '🎯', '🧠', '⚡', '🦄', '🐉', '🔮', '🎨', '🎭'];
 
 function initProfileEdit() {
-    const avatarContainer = document.getElementById('avatarOptions');
-    if (!avatarContainer) return;
+    try {
+        console.log('Initializing profile edit');
+        const avatarContainer = document.getElementById('avatarOptions');
+        if (!avatarContainer) {
+            console.warn('Avatar options container not found');
+            return;
+        }
 
-    const currentAvatar = userProgress.avatar || '🚀';
+        const currentAvatar = userProgress.avatar || '🚀';
+        console.log('Current avatar:', currentAvatar);
 
-    avatarContainer.innerHTML = avatarOptions.map(avatar => `
-        <div class="avatar-option ${avatar === currentAvatar ? 'selected' : ''}"
-             data-avatar="${avatar}">${avatar}</div>
-    `).join('');
+        avatarContainer.innerHTML = avatarOptions.map(avatar => `
+            <div class="avatar-option ${avatar === currentAvatar ? 'selected' : ''}"
+                 data-avatar="${avatar}">${avatar}</div>
+        `).join('');
 
-    avatarContainer.querySelectorAll('.avatar-option').forEach(opt => {
-        opt.addEventListener('click', () => {
-            avatarContainer.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
-            opt.classList.add('selected');
-            selectedAvatar = opt.dataset.avatar;
+        avatarContainer.querySelectorAll('.avatar-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                avatarContainer.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedAvatar = opt.dataset.avatar;
+                console.log('Selected avatar:', selectedAvatar);
+            });
         });
-    });
 
-    // Set name input
-    const nameInput = document.getElementById('profileNameInput');
-    if (nameInput) {
-        nameInput.value = userProgress.name || 'Learner';
+        const nameInput = document.getElementById('profileNameInput');
+        if (nameInput) {
+            nameInput.value = userProgress.name || 'Learner';
+        }
+
+        selectedAvatar = currentAvatar;
+        console.log('Profile edit initialized');
+    } catch (error) {
+        console.error('Error in initProfileEdit:', error);
     }
-
-    selectedAvatar = currentAvatar;
 }
 
 function openProfileModal() {
-    const modal = document.getElementById('profileEditModal');
-    if (modal) {
+    try {
+        console.log('Opening profile modal');
+        const modal = document.getElementById('profileEditModal');
+        if (!modal) {
+            console.error('Profile edit modal not found');
+            return;
+        }
         initProfileEdit();
         modal.classList.add('active');
+        console.log('Profile modal opened');
+    } catch (error) {
+        console.error('Error opening profile modal:', error);
     }
 }
 
@@ -792,7 +812,8 @@ function saveProfileChanges() {
 
 // Profile click handler
 document.addEventListener('click', (e) => {
-    if (e.target.closest('#profileEditBtn')) {
+    if (e.target.closest('.profile-edit-btn')) {
+        console.log('Profile edit button clicked');
         openProfileModal();
     }
 });
@@ -858,43 +879,61 @@ function getQuizTopicKey(topic) {
     return keyMap[name] || name.replace(/\s+/g, '');
 }
 function initQuizSection() {
-    const quizGrid = document.querySelector('.quiz-grid');
-    if (!quizGrid) return;
+    try {
+        console.log('Initializing Quiz Section...');
+        const quizGrid = document.querySelector('.quiz-grid');
+        if (!quizGrid) {
+            console.warn('Quiz grid element not found');
+            return;
+        }
+        console.log('Quiz grid found, topics count:', dsaTopics.length);
 
-    dsaTopics.forEach((topic, index) => {
-        const topicKey = getQuizTopicKey(topic);
-        const card = document.createElement('div');
-        card.className = 'quiz-card animate-in';
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.innerHTML = `
-            <div class="quiz-card-icon">${topic.icon}</div>
-            <h3 class="quiz-card-title">${topic.name}</h3>
-            <p class="quiz-card-desc">Test your knowledge with 10 unique questions</p>
-            <div class="quiz-card-meta">
-                <span class="quiz-count">10 Questions</span>
-                <span class="quiz-difficulty ${getDifficultyClass(topic.difficulty)}">${topic.difficulty}</span>
-            </div>
-            <div class="quiz-progress-bar">
-                <div class="quiz-progress-fill" id="progress-${topicKey}"></div>
-            </div>
-            <div class="quiz-stats">
-                <span>Best: <strong id="best-${topicKey}">--</strong></span>
-                <span>Attempts: <strong id="attempts-${topicKey}">0</strong></span>
-            </div>
-            <button class="btn btn-primary start-quiz-btn" data-topic="${topicKey}">
-                <i class="fas fa-play"></i> Start Quiz
-            </button>
-        `;
-        quizGrid.appendChild(card);
+        dsaTopics.forEach((topic, index) => {
+            const topicKey = getQuizTopicKey(topic);
+            console.log(`Creating quiz card for ${topic.name} (key: ${topicKey})`);
+            const card = document.createElement('div');
+            card.className = 'quiz-card animate-in';
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.innerHTML = `
+                <div class="quiz-card-icon">${topic.icon}</div>
+                <h3 class="quiz-card-title">${topic.name}</h3>
+                <p class="quiz-card-desc">Test your knowledge with 10 unique questions</p>
+                <div class="quiz-card-meta">
+                    <span class="quiz-count">10 Questions</span>
+                    <span class="quiz-difficulty ${getDifficultyClass(topic.difficulty)}">${topic.difficulty}</span>
+                </div>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="progress-${topicKey}"></div>
+                </div>
+                <div class="quiz-stats">
+                    <span>Best: <strong id="best-${topicKey}">--</strong></span>
+                    <span>Attempts: <strong id="attempts-${topicKey}">0</strong></span>
+                </div>
+                <button class="btn btn-primary start-quiz-btn" data-topic="${topicKey}">
+                    <i class="fas fa-play"></i> Start Quiz
+                </button>
+            `;
+            quizGrid.appendChild(card);
+            console.log(`Quiz card created for ${topic.name}`);
 
-        // Update progress display
-        updateQuizProgressDisplay(topic);
+            // Update progress display
+            updateQuizProgressDisplay(topic);
 
-        // Add click handler
-        card.querySelector('.start-quiz-btn').addEventListener('click', () => {
-            startQuiz(topic);
+            // Add click handler
+            const startBtn = card.querySelector('.start-quiz-btn');
+            if (startBtn) {
+                startBtn.addEventListener('click', () => {
+                    console.log(`Start Quiz clicked for ${topic.name}`);
+                    startQuiz(topic);
+                });
+            } else {
+                console.error('Start quiz button not found for topic:', topic.name);
+            }
         });
-    });
+        console.log('Quiz Section initialization complete');
+    } catch (error) {
+        console.error('Error initializing quiz section:', error);
+    }
 }
 
 function updateQuizProgressDisplay(topic) {
@@ -931,13 +970,18 @@ function startQuiz(topic) {
     };
 
     // Set modal header info
-    document.getElementById('topicQuizBadge').textContent = topic.name;
-    document.getElementById('topicQuizDifficulty').textContent = topic.difficulty;
-    document.getElementById('topicQuizTitle').textContent = `${topic.name} Quiz`;
+    try {
+        document.getElementById('topicQuizBadge').textContent = topic.name;
+        document.getElementById('topicQuizDifficulty').textContent = topic.difficulty;
+        document.getElementById('topicQuizTitle').textContent = `${topic.name} Quiz`;
 
-    // Hide previous results
-    const prevResult = document.getElementById('topicQuizResult');
-    if (prevResult) prevResult.classList.add('hidden');
+        // Hide previous results
+        const prevResult = document.getElementById('topicQuizResult');
+        if (prevResult) prevResult.classList.add('hidden');
+    } catch (e) {
+        console.error('Error setting quiz modal header:', e);
+        return;
+    }
 
     openQuizModal();
     renderQuizQuestion();
@@ -956,13 +1000,25 @@ function shuffleArray(array) {
 let currentQuiz = null;
 
 function openQuizModal() {
-    const modal = document.getElementById('quizModal');
-    if (modal) modal.classList.add('active');
+    try {
+        const modal = document.getElementById('quizModal');
+        if (modal) {
+            modal.classList.add('active');
+        } else {
+            console.error('Quiz modal element not found');
+        }
+    } catch (e) {
+        console.error('Error opening quiz modal:', e);
+    }
 }
 
 function closeQuizModal() {
-    const modal = document.getElementById('quizModal');
-    if (modal) modal.classList.remove('active');
+    try {
+        const modal = document.getElementById('quizModal');
+        if (modal) modal.classList.remove('active');
+    } catch (e) {
+        console.error('Error closing quiz modal:', e);
+    }
     currentQuiz = null;
 }
 
@@ -1247,10 +1303,16 @@ function updateProfile() {
         profileBadges.textContent = badges;
     }
 
-    // Update profile name
-    var profileName = document.getElementById("profileName");
-    if (profileName) {
-        profileName.textContent = userProgress.name;
+    // Update profile name in dashboard
+    var dashboardProfileName = document.getElementById("dashboardProfileName");
+    if (dashboardProfileName) {
+        dashboardProfileName.textContent = userProgress.name;
+    }
+    
+    // Update profile name in profile section
+    var profileSectionName = document.getElementById("profileSectionName");
+    if (profileSectionName) {
+        profileSectionName.textContent = userProgress.name;
     }
 
     // Update avatar
@@ -1589,46 +1651,67 @@ function initializeAnimations() {
 
 // ===== LOCAL STORAGE =====
 function saveUserData() {
-    userProgress.lastActive = new Date().toISOString();
-    localStorage.setItem('algoInfinityVerse', JSON.stringify(userProgress));
+    try {
+        userProgress.lastActive = new Date().toISOString();
+        localStorage.setItem('algoInfinityVerse', JSON.stringify(userProgress));
+    } catch (error) {
+        console.warn('Could not save user data to localStorage:', error);
+    }
 }
 
 function loadUserData() {
-    const saved = localStorage.getItem('algoInfinityVerse');
-    if (saved) {
-        const data = JSON.parse(saved);
-        userProgress = { ...userProgress, ...data };
+    try {
+        const saved = localStorage.getItem('algoInfinityVerse');
+        if (saved) {
+            const data = JSON.parse(saved);
+            userProgress = { ...userProgress, ...data };
 
-        // Ensure quizScores exists
-        if (!userProgress.quizScores) {
-            userProgress.quizScores = {};
-        }
-
-        // Update streak if user was active yesterday
-        if (userProgress.lastActive) {
-            const lastActive = new Date(userProgress.lastActive);
-            const today = new Date();
-            const diffDays = Math.floor((today - lastActive) / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 0) {
-                // Already active today
-            } else if (diffDays === 1) {
-                userProgress.streak += 1;
-            } else {
-                userProgress.streak = 0;
+            // Ensure quizScores exists
+            if (!userProgress.quizScores) {
+                userProgress.quizScores = {};
             }
+
+            // Update streak if user was active yesterday
+            if (userProgress.lastActive) {
+                const lastActive = new Date(userProgress.lastActive);
+                const today = new Date();
+                const diffDays = Math.floor((today - lastActive) / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 0) {
+                    // Already active today
+                } else if (diffDays === 1) {
+                    userProgress.streak += 1;
+                } else {
+                    userProgress.streak = 0;
+                }
+                saveUserData();
+            }
+        } else {
+            // Initialize with some demo data
+            userProgress.name = "Learner";
+            userProgress.avatar = "🚀";
+            userProgress.completedProblems = [1, 2, 10];
+            userProgress.xp = 350;
+            userProgress.level = 2;
+            userProgress.streak = 3;
+            userProgress.badges = [1];
+            userProgress.quizScores = {};
             saveUserData();
         }
-    } else {
-        // Initialize with some demo data
-        userProgress.name = "Learner";
-        userProgress.avatar = "🚀";
-        userProgress.completedProblems = [1, 2, 10];
-        userProgress.xp = 350;
-        userProgress.level = 2;
-        userProgress.streak = 3;
-        userProgress.badges = [1];
-        userProgress.quizScores = {};
+    } catch (error) {
+        console.error('Error loading user data, resetting to defaults:', error);
+        // Reset to defaults
+        userProgress = {
+            name: "Learner",
+            avatar: "🚀",
+            completedProblems: [],
+            xp: 0,
+            level: 1,
+            streak: 0,
+            badges: [],
+            lastActive: null,
+            quizScores: {}
+        };
         saveUserData();
     }
     // Update profile display after loading
@@ -1639,6 +1722,24 @@ function loadUserData() {
 let currentProblem = null;
 
 
+
+function openTopicModal(topic) {
+    const modal = document.getElementById('topicModal');
+    document.getElementById('modalTitle').textContent = topic.name;
+    document.getElementById('modalTheory').textContent = topic.theory;
+    document.getElementById('modalDifficulty').innerHTML =
+        `<span class="difficulty-badge ${getDifficultyClass(topic.difficulty)}">${topic.difficulty}</span>`;
+
+    const problemsList = document.getElementById('modalProblems');
+    problemsList.innerHTML = topic.problems.map(p => `<li>${p}</li>`).join('');
+
+    document.getElementById('startPracticeBtn').onclick = () => {
+        modal.classList.remove('active');
+        document.getElementById('practice').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    modal.classList.add('active');
+}
 
 function closeTopicModal() {
     document.getElementById('topicModal').classList.remove('active');
