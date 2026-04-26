@@ -11,14 +11,14 @@ const quizQuestions = {
         {
             id: "arrays-2",
             question: "Which of the following is NOT a characteristic of arrays?",
-            options: ["Fixed size (in static arrays)", "O(1) access time", "Elements must be of different types", "Contiguous memory allocation"],
+            options: ["Fixed size (in static arrays)", "O(1) access time", "Elements must be of different types", "Dynamic memory allocation"],
             correct: 2,
             explanation: "In arrays, all elements must be of the same type. This is a key characteristic of arrays."
         },
         {
             id: "arrays-3",
             question: "What is the time complexity of inserting an element at the beginning of an array?",
-            options: ["O(1)", "O(n)", "O(log n)", "O(1)"],
+            options: ["O(1)", "O(n)", "O(log n)", "O(n^2)"],
             correct: 1,
             explanation: "Inserting at the beginning requires shifting all existing elements, which is O(n)."
         },
@@ -866,7 +866,7 @@ function getDifficultyClass(difficulty) {
 
 // Get quiz topic key from topic object
 function getQuizTopicKey(topic) {
-    const name = topic.name.toLowerCase();
+    const name = topic.name.toLowerCase().trim();
     // Map topic names to quiz keys
     const keyMap = {
         'arrays': 'arrays',
@@ -920,6 +920,13 @@ function initQuizSection() {
             updateQuizProgressDisplay(topic);
 
             // Add click handler
+            // Add click handler to the whole card for better UX
+            card.addEventListener('click', (e) => {
+                console.log(`Quiz card clicked for ${topic.name}`);
+                startQuiz(topic);
+            });
+
+            // Prevent button from double-triggering if it bubbles
             const startBtn = card.querySelector('.start-quiz-btn');
             if (startBtn) {
                 startBtn.addEventListener('click', () => {
@@ -928,6 +935,7 @@ function initQuizSection() {
                 });
             } else {
                 console.error('Start quiz button not found for topic:', topic.name);
+                startBtn.addEventListener('click', (e) => e.stopPropagation());
             }
         });
         console.log('Quiz Section initialization complete');
@@ -971,6 +979,10 @@ function startQuiz(topic) {
 
     // Set modal header info
     try {
+        // Ensure the question panel is visible (in case it was hidden by a previous finish)
+        const quizLayout = document.querySelector('#quizModal .quiz-layout');
+        if (quizLayout) quizLayout.style.display = 'flex';
+
         document.getElementById('topicQuizBadge').textContent = topic.name;
         document.getElementById('topicQuizDifficulty').textContent = topic.difficulty;
         document.getElementById('topicQuizTitle').textContent = `${topic.name} Quiz`;
@@ -1121,11 +1133,13 @@ function finishQuiz() {
     updateQuizProgressDisplay(currentQuiz.topic);
     updateDashboard();
     updateGamification();
+}
 
-    setTimeout(() => {
-        closeQuizModal();
-        currentQuiz = null;
-    }, 1500);
+function restartCurrentQuiz() {
+    if (currentQuiz && currentQuiz.topic) {
+        const topic = currentQuiz.topic;
+        startQuiz(topic);
+    }
 }
 
 function showQuizResults(score, total, percentage, xpEarned) {
@@ -1158,10 +1172,17 @@ function showQuizResults(score, total, percentage, xpEarned) {
             </div>
             <p>You got <strong>${score}</strong> out of <strong>${total}</strong> questions correct</p>
             <p class="xp-gained">+${xpEarned} XP earned!</p>
+            <button class="btn btn-primary" onclick="restartCurrentQuiz()" style="margin-top: 1.5rem;">
+                <i class="fas fa-redo"></i> Retake Quiz
+            </button>
         </div>
     `;
 
     resultEl.classList.remove('hidden');
+    resultEl.style.display = 'block';
+    
+    const quizLayout = document.querySelector('#quizModal .quiz-layout');
+    if (quizLayout) quizLayout.style.display = 'none';
 }
 
 // ===== PRACTICE SECTION =====
@@ -1258,83 +1279,81 @@ function initRoadmap() {
 
 // ===== PROFILE =====
 function initProfile() {
-    var profileName = document.getElementById("profileName");
-    if (profileName) {
-        profileName.textContent = userProgress.name;
-    }
-    var joinDate = document.getElementById("joinDate");
-    if (joinDate) {
-        var today = new Date();
-        joinDate.textContent = today.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric"
-        });
-    }
-    var avatarIcon = document.querySelector('.avatar-icon');
-    if (avatarIcon) {
-        avatarIcon.textContent = userProgress.avatar || '🚀';
-    }
+    const todayStr = new Date().toLocaleDateString("en-US", {
+        month: "long", day: "numeric", year: "numeric"
+    });
+
+    // Set joined date for all date display elements
+    ['joinDate', 'profileSection-JoinDate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = todayStr;
+    });
+
     updateProfile();
 }
 
 function updateProfile() {
-    var levelNames = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master", "Grandmaster", "Legend"];
-    var profileLevel = document.getElementById("profileLevel");
-    if (profileLevel) {
-        profileLevel.textContent = "Level " + userProgress.level + " - " + levelNames[userProgress.level - 1];
-    }
-    var profileXP = document.getElementById("profileTotalXP");
-    if (profileXP) profileXP.textContent = userProgress.xp.toLocaleString();
-    var profileProblems = document.getElementById("profileProblems");
-    if (profileProblems) profileProblems.textContent = userProgress.completedProblems.length;
-    var profileStreak = document.getElementById("profileStreak");
-    if (profileStreak) profileStreak.textContent = userProgress.streak;
-    var profileBadges = document.getElementById("profileBadges");
-    if (profileBadges) {
-        var badges = [
-            userProgress.completedProblems.length >= 1,
-            userProgress.streak >= 7,
-            userProgress.xp >= 5000,
-            userProgress.completedProblems.length >= 50,
-            userProgress.completedProblems.length >= 100,
-            userProgress.completedProblems.length >= 25 && userProgress.xp >= 2500
-        ].filter(Boolean).length;
-        profileBadges.textContent = badges;
-    }
+    const levelNames = ["Beginner", "Novice", "Intermediate", "Advanced", "Expert", "Master", "Grandmaster", "Legend"];
+    const levelText = "Level " + userProgress.level + " - " + levelNames[userProgress.level - 1];
+    const xpText = userProgress.xp.toLocaleString();
+    const problemsCount = userProgress.completedProblems.length;
+    const streakCount = userProgress.streak;
 
-    // Update profile name in dashboard
-    var dashboardProfileName = document.getElementById("dashboardProfileName");
-    if (dashboardProfileName) {
-        dashboardProfileName.textContent = userProgress.name;
-    }
-    
-    // Update profile name in profile section
-    var profileSectionName = document.getElementById("profileSectionName");
-    if (profileSectionName) {
-        profileSectionName.textContent = userProgress.name;
-    }
+    const badgeCount = [
+        userProgress.completedProblems.length >= 1,
+        userProgress.streak >= 7,
+        problemsCount >= 1,
+        streakCount >= 7,
+        userProgress.xp >= 5000,
+        userProgress.completedProblems.length >= 50,
+        userProgress.completedProblems.length >= 100,
+        userProgress.completedProblems.length >= 25 && userProgress.xp >= 2500,
+        problemsCount >= 25 && userProgress.xp >= 2500
+    ].filter(Boolean).length;
 
-    // Update avatar
-    var avatarIcon = document.querySelector('.avatar-icon');
-    if (avatarIcon) {
-        avatarIcon.textContent = userProgress.avatar || '🚀';
-    }
+    const mapping = {
+        'profileName': userProgress.name,
+        'profileSectionName': userProgress.name,
+        'profileLevel': levelText, 
+        'profileSection-Level': levelText,
+        'profileTotalXP': xpText, 
+        'profileSection-TotalXP': xpText,
+        'profileProblems': problemsCount, 
+        'profileSection-Problems': problemsCount,
+        'profileStreak': streakCount, 
+        'profileSection-Streak': streakCount,
+        'profileBadges': badgeCount, 
+        'profileSection-Badges': badgeCount
+    };
+
+    Object.keys(mapping).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = mapping[id];
+    });
+
+    document.querySelectorAll('.avatar-icon').forEach(icon => {
+        icon.textContent = userProgress.avatar || '🚀';
+    });
 
     updateLevelProgress();
 }
 
 function updateLevelProgress() {
-    var levels = [0, 1000, 2500, 5000, 10000, 20000, 50000, 100000];
-    var currentLevel = userProgress.level;
-    var currentLevelXP = levels[Math.max(0, currentLevel - 1)];
-    var nextLevelXP = levels[currentLevel] || 100000;
-    var xpProgress = ((userProgress.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
-    var progressPercent = Math.min(Math.max(xpProgress, 0), 100);
-    var progressBar = document.getElementById("profileProgressBar");
-    var progressLabel = document.getElementById("profileLevelProgress");
-    if (progressBar) progressBar.style.width = progressPercent + "%";
-    if (progressLabel) progressLabel.textContent = Math.round(progressPercent) + "%";
+    const levels = [0, 1000, 2500, 5000, 10000, 20000, 50000, 100000];
+    const levelXP = levels[Math.max(0, userProgress.level - 1)];
+    const nextXP = levels[userProgress.level] || 100000;
+    const levelXPStart = levels[Math.max(0, userProgress.level - 1)];
+    const nextXPThreshold = levels[userProgress.level] || 100000;
+    const progress = Math.min(Math.max(((userProgress.xp - levelXPStart) / (nextXPThreshold - levelXPStart)) * 100, 0), 100);
+
+    ['profileProgressBar', 'profileSection-ProgressBar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = progress + "%";
+    });
+    ['profileLevelProgress', 'profileSection-LevelProgress'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = Math.round(progress) + "%";
+    });
 }
 
 // ===== DASHBOARD =====
@@ -2142,4 +2161,3 @@ document.addEventListener('click', (e) => {
 window.addEventListener('load', () => {
     console.log('Algo Infinity Verse loaded successfully! 🚀');
 });
-
